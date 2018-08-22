@@ -14,4 +14,6 @@ This is the general repository for Ad Operations code.  The code is run inside o
 
 ## Installation
 
+Install Chrome Google Scripts Extention before editing any code in Google Scripts to maintain version control.
+
 Upon running for the first time you will need to allow it to use your credentials for BigQuery.  No secrets should ever be written in a .gs file.  
