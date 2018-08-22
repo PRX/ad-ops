@@ -9,13 +9,24 @@ function test () {
   //showAdStructure(126);
 }
 
-function boxing () {
-var ss = SpreadsheetApp.getActiveSpreadsheet();
-var sheet = ss.getSheets()[0];
+function tinyBoxing (boxArray, spreadsheet) {
+  var sheet = spreadsheet.getSheets()[0];
+  
+  for(var i = 0; i < boxArray.length; i++) {
+    var cell = sheet.getRange(boxArray[i]);
 
-  var cell = sheet.getRange("A15:C17");
+    cell.setBorder(true, true, true, true, true, true);
+  }
+}
 
-cell.setBorder(true, true, true, true, false, false);
+function largeBoxing (boxArray, spreadsheet) {
+  var sheet = spreadsheet.getSheets()[0];
+  
+  for(var i = 0; i < boxArray.length; i++) {
+    var cell = sheet.getRange(boxArray[i]);
+
+    cell.setBorder(true, true, true, true, false, false);
+  }
 }
 
 
@@ -325,6 +336,7 @@ function runQuery(country) {
   SpreadsheetApp.setActiveSpreadsheet(spreadsheet)
   spreadsheet.setActiveSheet(spreadsheet.getSheets()[0])
   var sheet = SpreadsheetApp.getActiveSheet();
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   
   var episodes = getPodcastEpisodes(podcastId);
   var sortedEpisodes = sortPodcasts(episodes);
@@ -440,8 +452,10 @@ function runQuery(country) {
       data.push(['','','Average',avgDropWeek[0],avgNonDropWeek[0]]);
       data.push(['','','Minimum', minDropWeek, minNonDropWeek]);
 
-      data.unshift(['Date', 'Downloads', 'Episode Drop', 'Drop Week', 'Non Drop Week'])
-      sheet.getRange(3, k*7+1, (data.length), data[0].length).setValues(data);
+      
+      var zones = ['PreRoll', 'MidRoll A', 'MidRoll B']
+      data.unshift([zones[k], '', '', '', ''], ['Date', 'Downloads', 'Episode Drop', 'Drop Week', 'Non Drop Week'])
+      sheet.getRange(2, k*7+1, (data.length), data[0].length).setValues(data);
      
     }
     
@@ -455,11 +469,22 @@ function runQuery(country) {
     Logger.log('No rows returned.');
     
   }
-var htmlOutput = HtmlService
-    .createHtmlOutput('<p><a href= "'+spreadsheet.getUrl()+'" target="_blank">'+newSpreadsheetName+'</a></p>')
-    .setWidth(500)
-    .setHeight(100);
-SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Spreadsheet Created')
+  
+  var boxArray = ['A3:E3', 'C60:E61', 'H3:L3', 'J60:L61', 'O3:S3', 'Q60:S61']
+  
+  tinyBoxing(boxArray, spreadsheet);
+  
+  boxArray = ['A4:E10', 'A11:E17', 'A18:E24', 'A25:E31', 'A32:E38', 'A39:E45', 'A46:E52', 'A53:E59',
+             'H4:L10', 'H11:L17', 'H18:L24', 'H25:L31', 'H32:L38', 'H39:L45', 'H46:L52', 'H53:L59',
+             'O4:S10', 'O11:S17', 'O18:S24', 'O25:S31', 'O32:S38', 'O39:S45', 'O46:S52', 'O53:S59']
+  
+  largeBoxing(boxArray, spreadsheet);
+  
+  var htmlOutput = HtmlService
+  .createHtmlOutput('<p><a href= "'+spreadsheet.getUrl()+'" target="_blank">'+newSpreadsheetName+'</a></p>')
+  .setWidth(500)
+  .setHeight(100);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Spreadsheet Created')
 }
 // [END apps_script_bigquery_run_query]
 
