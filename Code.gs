@@ -6,7 +6,7 @@ function test () {
   //var sortedList = sortPodcasts(18, episodes);
   //buildSQLQuery(18, episodes, 'United States');
   //getSelectedCell();
-  //showAdStructure(126);
+  //showAdStructure(59);
 }
 
 function tinyBoxing (boxArray, spreadsheet) {
@@ -47,6 +47,14 @@ function getTitle(podcastId) {
   }
 
 function queryEachCountry(){
+    var podcastId = getSelectedCell()
+    if(typeof podcastId != 'number') {
+      var ui = SpreadsheetApp.getUi();
+      ui.alert("You haven't selected an ID cell!")
+      return null;
+    }
+
+  /*
   var countries = [['United States', 1],
                     ['Germany',8],
                     ['Australia',15],
@@ -55,6 +63,7 @@ function queryEachCountry(){
   for(var i = 0; i < countries.length; i++) {                
      runQuery(24, countries[i])
   }
+  */
 }
 
 
@@ -96,14 +105,18 @@ function showAdStructure (podcastId) {
       }
       
       var id = showFormats[i][j].id
-      var find = showStructures[path].name + '_mid_';
+      Logger.log(id)
+      var find = '_mid_';
+      Logger.log(path)
       if(id.search(find) != -1){
         structureByMids[i].mids++;
       }
     }
     structureByMids[i].mids = structureByMids[i].mids/2;
   }
+    Logger.log(structureByMids)
   return structureByMids
+
 }
 
 function sortDataIntoPreAndMid (podcastId, data) {
@@ -206,7 +219,7 @@ function getPodcastEpisodes (podcastId) {
 //
 function onOpen() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  var menuEntries = [ {name: 'Create from Selected Cell', functionName: 'test'}];
+  var menuEntries = [ {name: 'Create from Selected Cell', functionName: 'test'}, {name:'Query countries', functionName: 'quearyEachCounrty'}];
   sheet.addMenu('Create Inventory Sheet', menuEntries);
 };
 
