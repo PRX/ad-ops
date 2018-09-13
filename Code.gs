@@ -1,6 +1,6 @@
 function test () {
   //reveal is 149, the moth is 24, criminal is 18, nightvale is 126
-  runQuery(['United States', 1]);
+  //runQuery(['United States', 1]);
   //queryEachCountry();
   //var episodes = getPodcastEpisodes(126);
   //var sortedList = sortPodcasts(18, episodes);
@@ -9,8 +9,8 @@ function test () {
   //showAdStructure(59);
 }
 
-function tinyBoxing (boxArray, spreadsheet) {
-  var sheet = spreadsheet.getSheets()[0];
+function tinyBoxing (boxArray, spreadsheet, page) {
+  var sheet = spreadsheet.getSheets()[page];
   
   for(var i = 0; i < boxArray.length; i++) {
     var cell = sheet.getRange(boxArray[i]);
@@ -19,8 +19,8 @@ function tinyBoxing (boxArray, spreadsheet) {
   }
 }
 
-function largeBoxing (boxArray, spreadsheet) {
-  var sheet = spreadsheet.getSheets()[0];
+function largeBoxing (boxArray, spreadsheet, page) {
+  var sheet = spreadsheet.getSheets()[page];
   
   for(var i = 0; i < boxArray.length; i++) {
     var cell = sheet.getRange(boxArray[i]);
@@ -53,7 +53,26 @@ function queryEachCountry(){
       ui.alert("You haven't selected an ID cell!")
       return null;
     }
-
+  
+  var countries = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0].getRange("A15:B19").getDisplayValues();
+  var selectedCountries = [];
+  
+  for (var i = 0; i< countries.length; i++) {
+    if (countries[i][0] === 'x') {
+      selectedCountries.push(countries[i][1])
+    }
+  }
+  
+  var newSpreadsheetName = 'Inventory for ' + getTitle(podcastId) + ' for ' + getStartDate() + ' - ' + getEndDate();
+  var spreadsheet = SpreadsheetApp.create(newSpreadsheetName)
+  SpreadsheetApp.setActiveSpreadsheet(spreadsheet)
+  
+  for (var i = 0; i< selectedCountries.length; i++) {
+    if(i>0) {spreadsheet.insertSheet();}
+      spreadsheet.setActiveSheet(spreadsheet.getSheets()[i]).setName(selectedCountries[i])
+      runQuery(selectedCountries[i], spreadsheet, i, podcastId)
+  }
+  
   /*
   var countries = [['United States', 1],
                     ['Germany',8],
@@ -64,6 +83,12 @@ function queryEachCountry(){
      runQuery(24, countries[i])
   }
   */
+  
+    var htmlOutput = HtmlService
+  .createHtmlOutput('<p><a href= "'+spreadsheet.getUrl()+'" target="_blank">'+newSpreadsheetName+'</a></p>')
+  .setWidth(500)
+  .setHeight(100);
+  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Spreadsheet Created')
 }
 
 
@@ -332,22 +357,17 @@ function buildSQLQuery(podcastId, episodes, country) {
 }
 
 //updates sheet data
-function runQuery(country) {
-  var podcastId = getSelectedCell()
-    if(typeof podcastId != 'number') {
-      var ui = SpreadsheetApp.getUi();
-      ui.alert("You haven't selected an ID cell!")
-      return null;
-    }
+function runQuery(country, spreadsheet, page, podcastId) {
+
   //select spreadsheet
   //var inputSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   //inputSpreadsheet.setActiveSheet(inputSpreadsheet.getSheets()[0]);
   //var inputSheet = SpreadsheetApp.getActiveSheet();
   
-  var newSpreadsheetName = 'Inventory for ' + getTitle(podcastId) + ' for ' + getStartDate() + ' - ' + getEndDate();
-  var spreadsheet = SpreadsheetApp.create(newSpreadsheetName)
-  SpreadsheetApp.setActiveSpreadsheet(spreadsheet)
-  spreadsheet.setActiveSheet(spreadsheet.getSheets()[0])
+  //var newSpreadsheetName = 'Inventory for ' + getTitle(podcastId) + ' for ' + getStartDate() + ' - ' + getEndDate();
+  //var spreadsheet = SpreadsheetApp.create(newSpreadsheetName)
+  //SpreadsheetApp.setActiveSpreadsheet(spreadsheet)
+  spreadsheet.setActiveSheet(spreadsheet.getSheets()[page])
   var sheet = SpreadsheetApp.getActiveSheet();
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   
@@ -357,7 +377,7 @@ function runQuery(country) {
   var projectId = '301376532368';
   
   
-  var sql = buildSQLQuery(podcastId, episodes, country[0]);
+  var sql = buildSQLQuery(podcastId, episodes, country);
     
     
   var request = {
@@ -485,19 +505,15 @@ function runQuery(country) {
   
   var boxArray = ['A3:E3', 'C60:E61', 'H3:L3', 'J60:L61', 'O3:S3', 'Q60:S61']
   
-  tinyBoxing(boxArray, spreadsheet);
+  tinyBoxing(boxArray, spreadsheet, page);
   
   boxArray = ['A4:E10', 'A11:E17', 'A18:E24', 'A25:E31', 'A32:E38', 'A39:E45', 'A46:E52', 'A53:E59',
              'H4:L10', 'H11:L17', 'H18:L24', 'H25:L31', 'H32:L38', 'H39:L45', 'H46:L52', 'H53:L59',
              'O4:S10', 'O11:S17', 'O18:S24', 'O25:S31', 'O32:S38', 'O39:S45', 'O46:S52', 'O53:S59']
   
-  largeBoxing(boxArray, spreadsheet);
+  largeBoxing(boxArray, spreadsheet, page);
   
-  var htmlOutput = HtmlService
-  .createHtmlOutput('<p><a href= "'+spreadsheet.getUrl()+'" target="_blank">'+newSpreadsheetName+'</a></p>')
-  .setWidth(500)
-  .setHeight(100);
-  SpreadsheetApp.getUi().showModalDialog(htmlOutput, 'Spreadsheet Created')
+
 }
 // [END apps_script_bigquery_run_query]
 
