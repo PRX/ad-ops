@@ -244,7 +244,7 @@ function getPodcastEpisodes (podcastId) {
 //
 function onOpen() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet();
-  var menuEntries = [ {name: 'Create from Selected Cell', functionName: 'test'}, {name:'Query countries', functionName: 'quearyEachCounrty'}];
+  var menuEntries = [ {name: 'Create from Selected Cell', functionName: 'queryEachCountry'}];
   sheet.addMenu('Create Inventory Sheet', menuEntries);
 };
 
