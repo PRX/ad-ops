@@ -438,7 +438,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
         publishDate = formatDate(data[i][0]);
         
         for (var j=0; j < episodes.length; j++) {
-          if(publishDate == episodes[j][0]) {
+          if(publishDate == episodes[j][0] && data[i].length == 2) {
             data[i].push(episodes[j][1]);
 
           }
@@ -485,7 +485,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
       data.push(['','','Average',avgDropWeek[0],avgNonDropWeek[0]]);
       data.push(['','','Minimum', minDropWeek, minNonDropWeek]);
 
-      
+
       var zones = ['PreRoll', 'MidRoll A', 'MidRoll B']
       data.unshift([zones[k], '', '', '', ''], ['Date', 'Downloads', 'Episode Drop', 'Drop Week', 'Non Drop Week'])
       sheet.getRange(2, k*7+1, (data.length), data[0].length).setValues(data);
