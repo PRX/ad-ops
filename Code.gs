@@ -151,7 +151,7 @@ function sortDataIntoPreAndMid (podcastId, data) {
     //Builds PreRoll Table
     for(var i = 55; i >= 0;i--){
       date = new Date ();
-      newDate = new Date(date.setDate(date.getDate() - date.getDay() - i));
+      newDate = new Date(date.setUTCDate(date.getUTCDate() - date.getUTCDay() - i));
       preroll.push([newDate, 0]);
     }
   
@@ -166,13 +166,13 @@ function sortDataIntoPreAndMid (podcastId, data) {
     //Build MidRoll B Table
     for(var i = 55; i >= 0;i--){
       date = new Date ();
-      newDate = new Date(date.setDate(date.getDate() - date.getDay() - i));
+      newDate = new Date(date.setUTCDate(date.getUTCDate() - date.getUTCDay() - i));
       midrollA.push([newDate, 0]);
     }
 
     for(var i = 55; i >= 0;i--){
         date = new Date ();
-        newDate = new Date(date.setDate(date.getDate() - date.getDay() - i));
+        newDate = new Date(date.setUTCDate(date.getUTCDate() - date.getUTCDay() - i));
         midrollB.push([newDate, 0]);
       }
   
@@ -214,7 +214,7 @@ function getPodcastEpisodes (podcastId) {
   
   var episodes = []
   for (var i = 0; content.length > i; i++) {  
-    episodes.push([formatReleaseDate(content[i].publishedAt), content[i].title, content[i].id]);
+    episodes.push([formatDate(content[i].publishedAt), content[i].title, content[i].id]);
     
     if(content[i].categories.length > 0) {
       for (var j = 0; content[i].categories.length > j; j++) {
@@ -246,21 +246,14 @@ function onOpen() {
 //format's date into yyyy-mm-dd
 function formatDate(unformatedDate) {
   var dateObject = new Date(unformatedDate);
-  var reformatedDate = dateObject.getYear() + '-' + (dateObject.getMonth() +1)+ '-' + dateObject.getDate();
-  return reformatedDate
-}
-
-function formatReleaseDate(unformatedDate) {
-  var dateObject = new Date(unformatedDate);
-  dateObject = new Date(dateObject.setDate(dateObject.getDate()));
-  var reformatedDate = dateObject.getYear() + '-' + (dateObject.getMonth() +1)+ '-' + (dateObject.getDate());
+  var reformatedDate = dateObject.getUTCFullYear() + '-' + (dateObject.getUTCMonth() +1)+ '-' + (dateObject.getUTCDate());
   return reformatedDate
 }
 
 //Finds last Sunday and returns it as a TIMESTAMP readable date
 function getStartDate () {
     var date = new Date();
-    var eightWeeksAgo = new Date(date.setDate(date.getDate() - date.getDay() - 55));
+    var eightWeeksAgo = new Date(date.setUTCDate(date.getUTCDate() - date.getUTCDay() - 56));
     var startDate = formatDate(eightWeeksAgo);
     return startDate;
 }
@@ -269,7 +262,7 @@ function getStartDate () {
 function getEndDate () {
   
     var date = new Date();
-    var prevMonday = new Date(date.setDate(date.getDate() - date.getDay() + 2));
+    var prevMonday = new Date(date.setUTCDate(date.getUTCDate() - date.getUTCDay() + 2));
     var endDate = formatDate(prevMonday);
     return endDate
 }
@@ -426,7 +419,6 @@ function runQuery(country, spreadsheet, page, podcastId) {
     
     for (var k = 0; k < sortedData.length; k++) {
     data = sortedData[k]
-    Logger.log(sortedData[k]);
     //add episode names
     
     var dropWeek = false;
