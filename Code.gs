@@ -34,7 +34,6 @@ function getSelectedCell () {
 var selection = SpreadsheetApp.getActiveSpreadsheet().getSelection();
 // Returns the current highlighted cell in the one of the active ranges.
 var currentCell = selection.getCurrentCell();
-  Logger.log (currentCell.getValue());
    return currentCell.getValue();
 }
 
@@ -130,16 +129,13 @@ function showAdStructure (podcastId) {
       }
       
       var id = showFormats[i][j].id
-      Logger.log(id)
       var find = '_mid_';
-      Logger.log(path)
       if(id.search(find) != -1){
         structureByMids[i].mids++;
       }
     }
     structureByMids[i].mids = structureByMids[i].mids/2;
   }
-    Logger.log(structureByMids)
   return structureByMids
 
 }
@@ -181,7 +177,6 @@ function sortDataIntoPreAndMid (podcastId, data) {
       }
   
     for(var k = 0; k < midStructure.length; k++) {
-      Logger.log(midStructure[k].structure)
         if(midStructure[k].mids > 0) {
             for(var i = 0; i< data.length; i++) {
                 for( var j = 0; j< midrollA.length; j++) {
@@ -257,7 +252,7 @@ function formatDate(unformatedDate) {
 
 function formatReleaseDate(unformatedDate) {
   var dateObject = new Date(unformatedDate);
-  dateObject = new Date(dateObject.setDate(dateObject.getDate() - 1));
+  dateObject = new Date(dateObject.setDate(dateObject.getDate()));
   var reformatedDate = dateObject.getYear() + '-' + (dateObject.getMonth() +1)+ '-' + (dateObject.getDate());
   return reformatedDate
 }
@@ -431,6 +426,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
     
     for (var k = 0; k < sortedData.length; k++) {
     data = sortedData[k]
+    Logger.log(sortedData[k]);
     //add episode names
     
     var dropWeek = false;
@@ -455,7 +451,6 @@ function runQuery(country, spreadsheet, page, podcastId) {
       for(var i = 0; i< data.length; i++) {
         if(data[i][2] != '') {
           dropWeek = true
-          Logger.log(true)
         }
         if(i%7==6){
           var avg = data[i][1]+data[i-1][1]+data[i-2][1]+data[i-3][1]+data[i-4][1]+data[i-5][1]+data[i-6][1]
