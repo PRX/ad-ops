@@ -280,14 +280,17 @@ function getEndDate () {
 function sortPodcasts(episodeList) {
   var sortedList = [];
   var maxStructureSize = 0
+  
   for (var i = 0; episodeList.length>i;i++) {
     if ((episodeList[i][3]) > maxStructureSize){
       maxStructureSize = (episodeList[i][3]);
     }
   }
+  
   for(var i = 0; maxStructureSize>= i; i++) {
     sortedList.push([]);
   }
+  
   for (var i = 0; episodeList.length > i; i++) {
     if(episodeList[i][3] == 'adfree') {
       sortedList[0].push(episodeList[i][2]);
@@ -307,10 +310,9 @@ function buildSQLQuery(podcastId, episodes, country) {
   var episodesByStructure = sortPodcasts(episodes);
   var endDate = getEndDate ();
   var startDate = getStartDate();
+  var currentList = episodesByStructure[0]
   
   var sql = "select EXTRACT(DATE from timestamp) as day, COUNT(*) as count, country_name, CASE "  
-  
-  var currentList = episodesByStructure[0]
   
   if(currentList.length == 1) {
     sql = sql + " WHEN feeder_episode = '" + currentList[0] + "' THEN 'Ad Free ' "
@@ -355,36 +357,26 @@ function buildSQLQuery(podcastId, episodes, country) {
 //updates sheet data
 function runQuery(country, spreadsheet, page, podcastId) {
 
-  //select spreadsheet
-  //var inputSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  //inputSpreadsheet.setActiveSheet(inputSpreadsheet.getSheets()[0]);
-  //var inputSheet = SpreadsheetApp.getActiveSheet();
-  
-  //var newSpreadsheetName = 'Inventory for ' + getTitle(podcastId) + ' for ' + getStartDate() + ' - ' + getEndDate();
-  //var spreadsheet = SpreadsheetApp.create(newSpreadsheetName)
-  //SpreadsheetApp.setActiveSpreadsheet(spreadsheet)
   spreadsheet.setActiveSheet(spreadsheet.getSheets()[page])
   var sheet = SpreadsheetApp.getActiveSheet();
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   
   var episodes = getPodcastEpisodes(podcastId);
-  var sortedEpisodes = sortPodcasts(episodes);
-  
-  var projectId = '301376532368';
-  
-  
-  var sql = buildSQLQuery(podcastId, episodes, country);
-    
+  var sortedEpisodes = sortPodcasts(episodes);  
+  var projectId = '301376532368'; 
+  var sql = buildSQLQuery(podcastId, episodes, country);   
     
   var request = {
     query: sql,
     useLegacySql: false, 
   };
+  
   var queryResults = BigQuery.Jobs.query(request, projectId);
   var jobId = queryResults.jobReference.jobId;
 
   // Check on status of the Query Job.
   var sleepTimeMs = 500;
+  
   while (!queryResults.jobComplete) {
     Utilities.sleep(sleepTimeMs);
     sleepTimeMs *= 2;
@@ -396,22 +388,22 @@ function runQuery(country, spreadsheet, page, podcastId) {
   while (queryResults.pageToken) {
     queryResults = BigQuery.Jobs.getQueryResults(projectId, jobId, {
       pageToken: queryResults.pageToken
-    });
+    })
+    
     rows = rows.concat(queryResults.rows);
   }
 
-  if (rows) {
-    
+  if (rows) {    
     // Append the headers.
     var headers = queryResults.schema.fields.map(function(field) {
       return field.name;
     });
     headers.push('title');
-    //sheet.appendRow(headers);
 
     // Append the results.
     var data = new Array(rows.length);
     var publishDate;
+    
     for (var i = 0; i < rows.length; i++) {
       var cols = rows[i].f;
       data[i] = new Array(cols.length);
@@ -420,9 +412,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
       }
     }
     
-    var sortedData = sortDataIntoPreAndMid (podcastId, data);
-    
-
+    var sortedData = sortDataIntoPreAndMid (podcastId, data);   
     var sheet = SpreadsheetApp.getActiveSheet()
     
     for (var k = 0; k < sortedData.length; k++) {
@@ -439,6 +429,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
 
           }
         }
+        
         if (3 > data[i].length){
           data[i].push('');
         }
@@ -452,6 +443,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
         if(data[i][2] != '') {
           dropWeek = true
         }
+        
         if(i%7==6){
           var avg = data[i][1]+data[i-1][1]+data[i-2][1]+data[i-3][1]+data[i-4][1]+data[i-5][1]+data[i-6][1]
           //avg = Math.round(avg/7)
@@ -473,6 +465,7 @@ function runQuery(country, spreadsheet, page, podcastId) {
       if(avgDropWeek[1] != 0) {
         avgDropWeek[0] = Math.round(avgDropWeek[0]/avgDropWeek[1]) 
       }
+      
       if(avgNonDropWeek[1] != 0) {
         avgNonDropWeek[0] = Math.round(avgNonDropWeek[0]/avgNonDropWeek[1])
       }
@@ -480,22 +473,16 @@ function runQuery(country, spreadsheet, page, podcastId) {
       data.push(['','','Average',avgDropWeek[0],avgNonDropWeek[0]]);
       data.push(['','','Minimum', minDropWeek, minNonDropWeek]);
 
-
       var zones = ['PreRoll', 'MidRoll A', 'MidRoll B']
       data.unshift([zones[k], '', '', '', ''], ['Date', 'Downloads', 'Episode Drop', 'Drop Week', 'Non Drop Week'])
-      sheet.getRange(2, k*7+1, (data.length), data[0].length).setValues(data);
-     
-    }
-    
+      sheet.getRange(2, k*7+1, (data.length), data[0].length).setValues(data);   
+    }  
     
     Logger.log('Results spreadsheet updated: %s',
         spreadsheet.getUrl());
     
-
-    
   } else {
-    Logger.log('No rows returned.');
-    
+    Logger.log('No rows returned.');   
   }
   
   var boxArray = ['A3:E3', 'C60:E61', 'H3:L3', 'J60:L61', 'O3:S3', 'Q60:S61']
@@ -507,7 +494,6 @@ function runQuery(country, spreadsheet, page, podcastId) {
              'O4:S10', 'O11:S17', 'O18:S24', 'O25:S31', 'O32:S38', 'O39:S45', 'O46:S52', 'O53:S59']
   
   largeBoxing(boxArray, spreadsheet, page);
-  
 
 }
 // [END apps_script_bigquery_run_query]
