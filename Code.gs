@@ -122,7 +122,7 @@ function showAdStructure (podcastId) {
   //go through show Formats it into {structure: (number of originals), mids: (number of mid impressions)}
   var structureByMids = []
   for (var i = 0; i < showFormats.length; i++) {
-    structureByMids.push({structure:0, mids:0});
+    structureByMids.push({structure:0, mids:0, pre:0});
     for(var j = 0; j < showFormats[i].length; j++){
       if(showFormats[i][j].type == "original") {
         structureByMids[i].structure++
@@ -132,6 +132,10 @@ function showAdStructure (podcastId) {
       var find = '_mid_';
       if(id.search(find) != -1){
         structureByMids[i].mids++;
+      }
+      find = '_pre_';
+      if(id.search(find) != -1){
+        structureByMids[i].pre++;
       }
     }
     structureByMids[i].mids = structureByMids[i].mids/2;
@@ -157,8 +161,12 @@ function sortDataIntoPreAndMid (podcastId, data) {
   
     for(var i = 0; i< data.length; i++) {
       for( var j = 0; j< preroll.length; j++) {
-        if(formatDate(preroll[j][0]) == formatDate(new Date(data[i][0])) && data[i][3] != "Ad Free") {
-        preroll[j][1] = preroll[j][1] + Number(data[i][1])
+        for( var k = 0; k< midStructure.length; k++) {
+          if(midStructure[k].structure == data[i][3] && midStructure[k].pre > 0) {
+            if(formatDate(preroll[j][0]) == formatDate(new Date(data[i][0])) && data[i][3] != "Ad Free") {
+              preroll[j][1] = preroll[j][1] + Number(data[i][1])
+            }
+          }
         }
       }
     }
@@ -328,16 +336,16 @@ function buildSQLQuery(podcastId, episodes, country) {
     sql = sql + "'" + currentList[currentList.length -1] + "' ) THEN '"+ j +"' ";
   }
 }
-
   
   sql = sql + " ELSE 'Missing' END AS structure FROM production.dt_downloads" + 
     " join production.geonames on (country_geoname_id = geoname_id) where timestamp >= '" +
     startDate
     +"' AND timestamp <= '"+
-    endDate + 
-    "' AND country_name = '" +
-      country +
-        "' AND feeder_podcast = " 
+    endDate 
+
+    + "' AND country_name = '" +
+      country  
+        + "' AND feeder_podcast = " 
     + podcastId + 
       " AND is_duplicate = false GROUP BY day, structure, country_name order by country_name asc, structure asc, day asc;"
 
