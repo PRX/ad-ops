@@ -53,7 +53,7 @@ function queryEachCountry(){
       return null;
     }
   
-  var countries = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0].getRange("A15:B19").getDisplayValues();
+  var countries = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0].getRange("A15:B20").getDisplayValues();
   var selectedCountries = [];
   
   for (var i = 0; i< countries.length; i++) {
@@ -68,20 +68,14 @@ function queryEachCountry(){
   
   for (var i = 0; i< selectedCountries.length; i++) {
     if(i>0) {spreadsheet.insertSheet();}
-      spreadsheet.setActiveSheet(spreadsheet.getSheets()[i]).setName(selectedCountries[i])
-      runQuery(selectedCountries[i], spreadsheet, i, podcastId)
+    spreadsheet.setActiveSheet(spreadsheet.getSheets()[i]).setName(selectedCountries[i])
+
+    if(selectedCountries[i] === "Unselected Countries") {
+       runQuery(selectedCountries, spreadsheet, i, podcastId) 
+      } else {
+        runQuery(selectedCountries[i], spreadsheet, i, podcastId)
+      }
   }
-  
-  /*
-  var countries = [['United States', 1],
-                    ['Germany',8],
-                    ['Australia',15],
-                    ['United Kingdom',22],
-                   ['Canada', 29]]
-  for(var i = 0; i < countries.length; i++) {                
-     runQuery(24, countries[i])
-  }
-  */
   
     var htmlOutput = HtmlService
   .createHtmlOutput('<p><a href= "'+spreadsheet.getUrl()+'" target="_blank">'+newSpreadsheetName+'</a></p>')
@@ -162,8 +156,8 @@ function sortDataIntoPreAndMid (podcastId, data) {
     for(var i = 0; i< data.length; i++) {
       for( var j = 0; j< preroll.length; j++) {
         for( var k = 0; k< midStructure.length; k++) {
-          if(midStructure[k].structure == data[i][3] && midStructure[k].pre > 0) {
-            if(formatDate(preroll[j][0]) == formatDate(new Date(data[i][0])) && data[i][3] != "Ad Free") {
+          if(midStructure[k].structure == data[i][2] && midStructure[k].pre > 0) {
+            if(formatDate(preroll[j][0]) == formatDate(new Date(data[i][0])) && data[i][2] != "Ad Free") {
               preroll[j][1] = preroll[j][1] + Number(data[i][1])
             }
           }
@@ -188,7 +182,7 @@ function sortDataIntoPreAndMid (podcastId, data) {
         if(midStructure[k].mids > 0) {
             for(var i = 0; i< data.length; i++) {
                 for( var j = 0; j< midrollA.length; j++) {
-                  if(formatDate(midrollA[j][0]) == formatDate(new Date(data[i][0])) && data[i][3] == midStructure[k].structure) {
+                  if(formatDate(midrollA[j][0]) == formatDate(new Date(data[i][0])) && data[i][2] == midStructure[k].structure) {
                   midrollA[j][1] = midrollA[j][1] + Number(data[i][1])
                   }
                 }
@@ -199,7 +193,7 @@ function sortDataIntoPreAndMid (podcastId, data) {
         if(midStructure[k].mids > 1) {
             for(var i = 0; i< data.length; i++) {
                 for( var j = 0; j< midrollB.length; j++) {
-                  if(formatDate(midrollB[j][0]) == formatDate(new Date(data[i][0])) && data[i][3] == midStructure[k].structure) {
+                  if(formatDate(midrollB[j][0]) == formatDate(new Date(data[i][0])) && data[i][2] == midStructure[k].structure) {
                   midrollB[j][1] = midrollB[j][1] + Number(data[i][1])
                   }
                 }
@@ -312,7 +306,7 @@ function buildSQLQuery(podcastId, episodes, country) {
   var startDate = getStartDate();
   var currentList = episodesByStructure[0]
   
-  var sql = "select EXTRACT(DATE from timestamp) as day, COUNT(*) as count, country_name, CASE "  
+  var sql = "select EXTRACT(DATE from timestamp) as day, COUNT(*) as count, CASE "  
   
   if(currentList.length == 1) {
     sql = sql + " WHEN feeder_episode = '" + currentList[0] + "' THEN 'Ad Free ' "
@@ -341,15 +335,22 @@ function buildSQLQuery(podcastId, episodes, country) {
   
   sql = sql + " ELSE 'Missing' END AS structure FROM production.dt_downloads" + 
     " join production.geonames on (country_geoname_id = geoname_id) where timestamp >= '" +
-    startDate
+      startDate
     +"' AND timestamp <= '"+
     endDate 
-
-    + "' AND country_name = '" +
-      country  
-        + "' AND feeder_podcast = " 
+    var string = ""
+    if(typeof country === "string") 
+    {  string =  "' AND country_name = '" + country  + "'"
+    } else { string = "' AND country_name NOT IN (" 
+               for (var k = 0; country.length - 1 > k; k++) {
+                 string = string + "'" + country[k] + "', "
+               } 
+            string = string.slice(0, -2) + ")"
+           }
+  sql = sql + string + " AND feeder_podcast = " 
     + podcastId + 
-      " AND is_duplicate = false GROUP BY day, structure, country_name order by country_name asc, structure asc, day asc;"
+      " AND is_duplicate = false GROUP BY day, structure order by structure asc, day asc;"
+
 
   return sql
 }
