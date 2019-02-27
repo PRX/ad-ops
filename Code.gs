@@ -2,11 +2,11 @@ function test () {
   //reveal is 149, the moth is 24, criminal is 18, nightvale is 126
   //runQuery(['United States', 1]);
   //queryEachCountry();
-  //var episodes = getPodcastEpisodes(126);
-  //var sortedList = sortPodcasts(18, episodes);
+  //var episodes = getPodcastEpisodes(3);
+  //var sortedList = sortPodcasts(episodes);
   //buildSQLQuery(18, episodes, 'United States');
   //getSelectedCell();
-  //showAdStructure();
+  //showAdStructure(3);
 }
 
 function tinyBoxing (boxArray, spreadsheet, page) {
@@ -96,7 +96,9 @@ function showAdStructure (podcastId) {
   var url = 'http://feeder.prx.org/api/v1/podcasts/'+podcastId
   var res = UrlFetchApp.fetch(url).getContentText();
   var path = JSON.parse(res).path;
-  
+  if(podcastId === 3) {
+    path = 'memory'
+  }
   if(path in showStructures){
     show = showStructures[path].placements;
   }
